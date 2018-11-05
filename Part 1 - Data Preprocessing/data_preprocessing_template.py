@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.preprocessing import Imputer
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 
 def run_preprocessing():
@@ -13,12 +14,27 @@ def run_preprocessing():
 
     X, y = encode_categorical_data(X, y)
 
-    split_train_test(X, y)
+    X_train, X_test, y_train, y_test = split_train_test(X, y)
+
+    feature_scaling(X_test, X_train)
+
+
+def feature_scaling(X_test, X_train):
+    sc_X = StandardScaler()
+    # here we scale the dummy variables created by the dummy encoding too.
+    # but in some cases, we might not need to do that because their scale
+    # is small (they can only be 0 or 1) and the benefit is that we can
+    # preserve the # correlations b/w those variables.
+    X_train = sc_X.fit_transform(X_train)
+    X_test = sc_X.transform(X_test)
+
+    # B/c the output is categorical data, we don't need to scale it.
 
 
 def split_train_test(X, y):
     # Split the dataset into the training set and test set
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+    return X_train, X_test, y_train, y_test
 
 
 def import_dataset():
