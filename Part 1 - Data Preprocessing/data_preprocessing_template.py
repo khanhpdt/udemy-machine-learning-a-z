@@ -10,13 +10,13 @@ from sklearn.preprocessing import StandardScaler
 def run_preprocessing():
     X, y = import_dataset()
 
-    handle_missing_data(X)
-
-    X, y = encode_categorical_data(X, y)
+    # disable these two steps for now
+    # handle_missing_data(X)
+    # X, y = encode_categorical_data(X, y)
 
     X_train, X_test, y_train, y_test = split_train_test(X, y)
 
-    feature_scaling(X_test, X_train)
+    X_train, X_test = feature_scaling(X_test, X_train)
 
 
 def feature_scaling(X_test, X_train):
@@ -29,6 +29,8 @@ def feature_scaling(X_test, X_train):
     X_test = sc_X.transform(X_test)
 
     # B/c the output is categorical data, we don't need to scale it.
+
+    return X_train, X_test
 
 
 def split_train_test(X, y):
