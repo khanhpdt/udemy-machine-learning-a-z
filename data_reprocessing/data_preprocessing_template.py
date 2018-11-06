@@ -1,64 +1,47 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from sklearn.preprocessing import Imputer
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import Imputer
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 
 
-def run_preprocessing():
-    X, y = import_dataset()
-
-    # disable these two steps for now
-    # handle_missing_data(X)
-    # X, y = encode_categorical_data(X, y)
-
-    X_train, X_test, y_train, y_test = split_train_test(X, y)
-
-    X_train, X_test = feature_scaling(X_test, X_train)
+def import_dataset(dataset_file, feature_indices, output_indices):
+    dataset = pd.read_csv(dataset_file)
+    features = dataset.iloc[:, feature_indices].values
+    output = dataset.iloc[:, output_indices].values
+    return features, output
 
 
-def feature_scaling(X_test, X_train):
-    sc_X = StandardScaler()
+def feature_scaling(training_data, test_data):
+    scaler = StandardScaler()
+
     # here we scale the dummy variables created by the dummy encoding too.
     # but in some cases, we might not need to do that because their scale
     # is small (they can only be 0 or 1) and the benefit is that we can
     # preserve the # correlations b/w those variables.
-    X_train = sc_X.fit_transform(X_train)
-    X_test = sc_X.transform(X_test)
+    training_data = scaler.fit_transform(training_data)
+    test_data = scaler.transform(test_data)
 
     # B/c the output is categorical data, we don't need to scale it.
 
-    return X_train, X_test
+    return training_data, test_data
 
 
-def split_train_test(X, y):
-    # Split the dataset into the training set and test set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+def split_train_test(features, output, test_size):
+    X_train, X_test, y_train, y_test = train_test_split(features, output, test_size=test_size, random_state=0)
     return X_train, X_test, y_train, y_test
 
 
-def import_dataset():
-    # Importing the dataset
-    dataset = pd.read_csv('Data.csv')
-    X = dataset.iloc[:, :-1].values
-    y = dataset.iloc[:, 3].values
-    return X, y
-
-
-def handle_missing_data(X):
-    # Taking care of missing data:
+def handle_missing_data(data, columns):
     # replace missing data by the mean of the feature
     imputer = Imputer(missing_values='NaN', strategy='mean', axis=0)
     # only concern the columns with missing data
-    imputer = imputer.fit(X[:, 1:3])
-    X[:, 1:3] = imputer.transform(X[:, 1:3])
+    imputer = imputer.fit(data[:, columns])
+    data[:, columns] = imputer.transform(data[:, columns])
 
-
+# todo: customize this method if needed
 def encode_categorical_data(X, y):
-    # Encode categorical data:
-    # encode the country feature
+    # encode the first feature
     label_encoder_X = LabelEncoder()
     X[:, 0] = label_encoder_X.fit_transform(X[:, 0])
     # However, if we just simply encode the categorical data to numbers,
@@ -75,7 +58,3 @@ def encode_categorical_data(X, y):
     label_encoder_y = LabelEncoder()
     y = label_encoder_y.fit_transform(y)
     return X, y
-
-
-if __name__ == '__main__':
-    run_preprocessing()
