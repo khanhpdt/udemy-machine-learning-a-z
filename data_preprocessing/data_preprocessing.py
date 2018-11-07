@@ -39,6 +39,7 @@ def handle_missing_data(data, columns):
     imputer = imputer.fit(data[:, columns])
     data[:, columns] = imputer.transform(data[:, columns])
 
+
 # todo: customize this method if needed
 def encode_categorical_data(X, y):
     # encode the first feature
