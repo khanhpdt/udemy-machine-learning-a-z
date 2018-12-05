@@ -1,15 +1,16 @@
 import pandas as pd
+from sklearn.compose import make_column_transformer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import Imputer
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 
 
-def import_dataset(dataset_file, feature_indices, output_indices):
+def import_dataset(dataset_file, feature_column_idxs, label_column_idx):
     dataset = pd.read_csv(dataset_file)
-    features = dataset.iloc[:, feature_indices].values
-    output = dataset.iloc[:, output_indices].values
-    return features, output
+    features = dataset.iloc[:, feature_column_idxs].values
+    labels = dataset.iloc[:, label_column_idx].values
+    return features, labels
 
 
 def feature_scaling(training_data, test_data):
@@ -27,35 +28,46 @@ def feature_scaling(training_data, test_data):
     return training_data, test_data
 
 
-def split_train_test(features, output, test_size):
-    X_train, X_test, y_train, y_test = train_test_split(features, output, test_size=test_size, random_state=0)
-    return X_train, X_test, y_train, y_test
+def split_train_test(features, labels, test_size):
+    features_for_training, features_for_test, labels_for_training, labels_for_test = \
+        train_test_split(features, labels, test_size=test_size, random_state=0)
+    return features_for_training, features_for_test, labels_for_training, labels_for_test
 
 
 def handle_missing_data(data, columns):
     # replace missing data by the mean of the feature
     imputer = Imputer(missing_values='NaN', strategy='mean', axis=0)
+
     # only concern the columns with missing data
     imputer = imputer.fit(data[:, columns])
+
     data[:, columns] = imputer.transform(data[:, columns])
 
 
-# todo: customize this method if needed
-def encode_categorical_data(X, y):
-    # encode the first feature
-    label_encoder_X = LabelEncoder()
-    X[:, 0] = label_encoder_X.fit_transform(X[:, 0])
-    # However, if we just simply encode the categorical data to numbers,
+def one_hot_encode_categorical_features(features,
+                                        categorical_feature_column_idxs,
+                                        avoid_dummy_encoding_trap=True,
+                                        labels=None):
+
+    # If we just simply encode the categorical data to numbers,
     # this introduces the order relationship between the data. e.g., here we
     # encode the countries into numbers like 0, 1, 2, ..., and this has a
     # side effect that it introduces ordering into the countries which does
     # not make sense. This can be fixed by using the OneHotEncoder as below:
-    one_hot_encoder = OneHotEncoder(categorical_features=[0])
-    X = one_hot_encoder.fit_transform(X).toarray()
+    column_transformer = make_column_transformer(
+        (categorical_feature_column_idxs, OneHotEncoder()), remainder="passthrough")
+    features = column_transformer.fit_transform(features)
+
+    # remove one of the dummy variables, because it is recommended not to include
+    # all dummy variables due their interdependency.
+    if avoid_dummy_encoding_trap:
+        features = features[:, 1:]
+
     # It's ok to just encode the categorical data in the output into numbers
     # and not necessary to use OneHotEncoder.
-    # The reason is because the machine learning model knows that there is no
-    # order in the ouput. (how do they know???)
-    label_encoder_y = LabelEncoder()
-    y = label_encoder_y.fit_transform(y)
-    return X, y
+    # This is because ordering in the label will not affect a learning model.
+    if labels is not None:
+        label_encoder_for_label = LabelEncoder()
+        labels = label_encoder_for_label.fit_transform(labels)
+
+    return features, labels
