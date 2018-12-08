@@ -1,6 +1,8 @@
 from data_preprocessing import data_preprocessing
 from sklearn.linear_model import LinearRegression
 
+from regresion.multiple_linear_regression.backward_elimination import backward_elimination
+
 
 def _main():
     features, labels = data_preprocessing.import_dataset('50_Startups.csv', slice(0, 4), 4)
@@ -14,6 +16,8 @@ def _main():
     regressor.fit(features_train, labels_train)
 
     labels_test_pred = regressor.predict(features_test)
+
+    features_opt_idxs = backward_elimination(features, labels)
 
 
 if __name__ == '__main__':
