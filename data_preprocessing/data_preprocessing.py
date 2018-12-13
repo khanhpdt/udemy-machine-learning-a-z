@@ -14,18 +14,21 @@ def import_dataset(dataset_file, feature_column_idxs, label_column_idx):
 
 
 def feature_scaling(training_data, test_data):
-    scaler = StandardScaler()
-
     # here we scale the dummy variables created by the dummy encoding too.
     # but in some cases, we might not need to do that because their scale
     # is small (they can only be 0 or 1) and the benefit is that we can
-    # preserve the # correlations b/w those variables.
-    training_data = scaler.fit_transform(training_data)
-    test_data = scaler.transform(test_data)
+    # preserve the correlations b/w those variables.
+    training_data = standard_scale(training_data)
+    test_data = standard_scale(test_data)
 
     # B/c the output is categorical data, we don't need to scale it.
 
     return training_data, test_data
+
+
+def standard_scale(data):
+    scaler = StandardScaler()
+    return scaler.fit_transform(data)
 
 
 def split_train_test(features, labels, test_size):
