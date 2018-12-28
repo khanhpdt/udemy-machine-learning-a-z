@@ -28,5 +28,12 @@ for i in range(K):
     cluster_item_indexes = cluster_pred == i
     plt.scatter(features[cluster_item_indexes, 0], 
                 features[cluster_item_indexes, 1], 
-                c=colors[i])
+                c=colors[i],
+                label='Cluster ' + str(i))
+plt.scatter(kmeans.cluster_centers_[:, 0], 
+            kmeans.cluster_centers_[:, 1], 
+            s=300, 
+            c='yellow',
+            label='Centroids')
+plt.legend()
 plt.show()
