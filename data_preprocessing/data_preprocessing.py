@@ -6,11 +6,15 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 
 
-def import_dataset(dataset_file, feature_column_idxs, label_column_idx):
+def import_dataset(dataset_file, feature_column_idxs, label_column_idx=None):
     dataset = pd.read_csv(dataset_file)
     features = dataset.iloc[:, feature_column_idxs].values
-    labels = dataset.iloc[:, label_column_idx].values
-    return features, labels
+    
+    if label_column_idx is not None:
+        labels = dataset.iloc[:, label_column_idx].values
+        return features, labels
+    
+    return features
 
 
 def feature_scaling(training_data, test_data):
